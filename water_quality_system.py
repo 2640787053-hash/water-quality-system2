@@ -7,29 +7,17 @@ import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import platform
 
-# 兼容 Windows本地 和 Linux线上部署
+# =========【字体只保留一份，修复线上Linux找不到宋体】=========
 if platform.system() == "Windows":
     # Windows本机使用宋体
     my_font = FontProperties(fname=r"C:\Windows\Fonts\simsun.ttc")
     plt.rcParams['axes.unicode_minus'] = False
 else:
-    # Streamlit 线上Linux 使用系统自带文泉驿中文字体，不要写本地文件路径！
+    # Streamlit云端Linux用文泉驿字体，不读取本地磁盘文件
     plt.rcParams['font.sans-serif'] = ['WenQuanYi Zen Hei']
     plt.rcParams['axes.unicode_minus'] = False
     my_font = FontProperties()
 
-# 兼容 Windows本地 + Linux线上部署
-if platform.system() == "Windows":
-    my_font = FontProperties(fname=r"C:\Windows\Fonts\simsun.ttc")
-else:
-    # Linux线上环境使用内置文泉驿中文字体
-    plt.rcParams['font.sans-serif'] = ['WenQuanYi Zen Hei']
-    plt.rcParams['axes.unicode_minus'] = False
-    my_font = FontProperties()
-
-
-# 直接读取Windows系统宋体，绕开matplotlib缓存，解决方框乱码
-my_font = FontProperties(fname=r"C:\Windows\Fonts\simsun.ttc")
 
 st.set_page_config(page_title="城市河道水质检测可视化系统", layout="wide")
 
@@ -135,8 +123,13 @@ with col2:
     axes[3].set_ylabel("浊度", fontproperties=my_font)
     axes[3].grid(alpha=0.3)
 
-    plt.tight_layout()
+    try:
+        plt.tight_layout(pad=1.5)
+    except Exception:
+        pass
     st.pyplot(fig)
+    plt.close("all")
+
 
 st.divider()
 st.subheader("水质统计汇总 & 超标预警")
@@ -182,7 +175,13 @@ ax2.set_xlabel("水质等级", fontproperties=my_font)
 ax2.set_ylabel("样本数量", fontproperties=my_font)
 ax2.set_title("各水质等级样本数量分布", fontproperties=my_font)
 ax2.grid(axis="y", alpha=0.3)
+try:
+    plt.tight_layout(pad=1.5)
+except Exception:
+    pass
 st.pyplot(fig2)
+plt.close("all")
+
 
 # 多站点溶解氧对比折线图
 st.divider()
@@ -197,8 +196,13 @@ ax_multi.set_ylabel("溶解氧DO mg/L", fontproperties=my_font)
 ax_multi.legend(prop=my_font)
 ax_multi.grid(alpha=0.3)
 plt.xticks(rotation=30)
-plt.tight_layout()
+try:
+    plt.tight_layout(pad=1.5)
+except Exception:
+    pass
 st.pyplot(fig_multi)
+plt.close("all")
+
 
 # pH直方图分布
 st.divider()
@@ -209,7 +213,13 @@ ax_hist.set_title("pH值频数分布", fontproperties=my_font)
 ax_hist.set_xlabel("pH", fontproperties=my_font)
 ax_hist.set_ylabel("频数", fontproperties=my_font)
 ax_hist.grid(axis="y", alpha=0.3)
+try:
+    plt.tight_layout(pad=1.5)
+except Exception:
+    pass
 st.pyplot(fig_hist)
+plt.close("all")
+
 
 # ============水质指标相关性热力图============
 st.divider()
@@ -226,7 +236,13 @@ for i in range(len(corr_df.columns)):
         ax_corr.text(j,i,f"{corr_df.iloc[i,j]:.2f}",ha="center",va="center", fontproperties=my_font)
 fig_corr.colorbar(im,ax=ax_corr)
 ax_corr.set_title("指标相关系数热力图", fontproperties=my_font)
+try:
+    plt.tight_layout(pad=1.5)
+except Exception:
+    pass
 st.pyplot(fig_corr)
+plt.close("all")
+
 
 # ============当前筛选站点指标箱线图============
 st.divider()
@@ -254,8 +270,13 @@ axes_box[3].set_xticklabels(["浊度"], fontproperties=my_font)
 axes_box[3].set_title("浊度分布箱线", fontproperties=my_font)
 axes_box[3].grid(alpha=0.2)
 
-plt.tight_layout()
+try:
+    plt.tight_layout(pad=1.5)
+except Exception:
+    pass
 st.pyplot(fig_box)
+plt.close("all")
+
 
 # ============全部数据水质等级饼图============
 st.divider()
@@ -265,7 +286,13 @@ level_count_all = df["水质等级"].value_counts()
 ax_pie.pie(level_count_all.values, labels=level_count_all.index, autopct="%.1f%%",
            startangle=90, textprops={"fontproperties":my_font})
 ax_pie.set_title("地表水各等级占比", fontproperties=my_font)
+try:
+    plt.tight_layout(pad=1.5)
+except Exception:
+    pass
 st.pyplot(fig_pie)
+plt.close("all")
+
 
 # ============异常数据检测模块============
 st.divider()
@@ -283,6 +310,7 @@ if len(abnormal_df)>0:
 else:
     st.success("当前筛选范围内无异常水质记录")
 
+
 # ============地表水标准参考说明面板============
 st.divider()
 with st.expander("📖 地表水水质标准参考说明（简化版）", expanded=False):
@@ -298,6 +326,7 @@ with st.expander("📖 地表水水质标准参考说明（简化版）", expand
     pH正常范围：6‑9；数值偏离代表水体酸碱污染。
     浊度：代表水体悬浮物，数值越高水体越浑浊。
     """)
+
 
 # ============各监测点水质等级统计对比表格============
 st.divider()
